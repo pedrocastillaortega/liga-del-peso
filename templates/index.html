@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Clasificación - La Liga del Peso{% endblock %}
+
+{% block content %}
+<div class="text-center mb-4">
+    <h1 class="display-4 fw-bold text-primary">
+        <i class="bi bi-trophy-fill"></i> La Liga del Peso
+    </h1>
+    <p class="lead text-muted">¿Quién será el campeón zampabollos de esta semana?</p>
+</div>
+
+{% if winner %}
+<div class="card border-warning mb-4 shadow winner-card">
+    <div class="card-body text-center py-4">
+        <h2 class="card-title text-warning mb-3">
+            <i class="bi bi-crown-fill"></i> ¡Campeón Zampabollos de la Semana {{ current_week }}!
+        </h2>
+        <div class="winner-avatar mb-3">
+            {% if winner.foto_url %}
+                <img src="{{ url_for('static', filename=winner.foto_url) }}" alt="{{ winner.nombre }}" class="rounded-circle winner-photo">
+            {% else %}
+                <div class="winner-placeholder rounded-circle">
+                    <i class="bi bi-person-fill"></i>
+                </div>
+            {% endif %}
+        </div>
+        <h3 class="fw-bold text-dark">{{ winner.nombre }}</h3>
+        <p class="badge bg-warning text-dark fs-5 px-3 py-2 mb-2">
+            <i class="bi bi-quote"></i> {{ winner.apodo }}
+        </p>
+        <p class="text-muted">
+            Variación: <strong>{{ '%+.1f'|format(winner.variacion_peso) }} kg</strong> |
+            Puntos: <strong>{{ winner.puntos }}</strong>
+        </p>
+    </div>
+</div>
+{% elif current_week == 0 %}
+<div class="alert alert-info text-center">
+    <i class="bi bi-info-circle me-2"></i>
+    ¡Aún no hay pesajes! Ve a <a href="{{ url_for('members') }}">Integrantes</a> para dar de alta participantes
+    y luego registra el primer <a href="{{ url_for('weigh_in') }}">Pesaje</a>.
+</div>
+{% elif current_week == 1 %}
+<div class="alert alert-info text-center">
+    <i class="bi bi-info-circle me-2"></i>
+    Semana 1 registrada (peso inicial). ¡Registra la Semana 2 para empezar a puntuar!
+</div>
+{% endif %}
+
+<h2 class="mb-3"><i class="bi bi-bar-chart-fill me-2"></i>Clasificación General</h2>
+
+{% if classification %}
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th class="text-center" style="width: 60px">Pos.</th>
+                <th>Participante</th>
+                <th class="text-center">Semanas</th>
+                <th class="text-center">Puntos</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for member in classification %}
+            <tr class="{% if loop.index == 1 and member.total_puntos > 0 %}table-warning{% endif %}">
+                <td class="text-center">
+                    {% if loop.index == 1 and member.total_puntos > 0 %}
+                        <span class="fs-4">🥇</span>
+                    {% elif loop.index == 2 and member.total_puntos > 0 %}
+                        <span class="fs-4">🥈</span>
+                    {% elif loop.index == 3 and member.total_puntos > 0 %}
+                        <span class="fs-4">🥉</span>
+                    {% else %}
+                        <span class="text-muted">{{ loop.index }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        {% if member.foto_url %}
+                            <img src="{{ url_for('static', filename=member.foto_url) }}" alt="{{ member.nombre }}" class="rounded-circle me-2 member-thumb">
+                        {% else %}
+                            <div class="member-thumb-placeholder rounded-circle me-2">
+                                <i class="bi bi-person-fill"></i>
+                            </div>
+                        {% endif %}
+                        <strong>{{ member.nombre }}</strong>
+                    </div>
+                </td>
+                <td class="text-center">{{ member.semanas_jugadas }}</td>
+                <td class="text-center">
+                    <span class="badge bg-primary fs-6 px-3">{{ member.total_puntos }}</span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="text-muted text-center">No hay participantes todavía.</p>
+{% endif %}
+{% endblock %}

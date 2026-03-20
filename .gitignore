@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+venv/
+.env
+
+# Script de generación de iconos (solo uso local)
+create_icons.py
+
+# Base de datos local (Railway usará la suya propia)
+liga_del_peso.db

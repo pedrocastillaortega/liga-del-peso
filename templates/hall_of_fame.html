@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Muro de la Fama - La Liga del Peso{% endblock %}
+
+{% block content %}
+<div class="text-center mb-4">
+    <h2 class="fw-bold"><i class="bi bi-star-fill text-warning me-2"></i>Muro de la Fama</h2>
+    <p class="text-muted">Galería de Campeones Zampabollos</p>
+</div>
+
+{% if winners %}
+<div class="row g-4">
+    {% for w in winners %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow diploma-card h-100 border-warning">
+            <div class="card-body text-center p-4">
+                <!-- Diploma Header -->
+                <div class="diploma-header mb-3">
+                    <i class="bi bi-award-fill text-warning display-4"></i>
+                    <h4 class="text-warning fw-bold mt-2">DIPLOMA</h4>
+                    <p class="text-muted fw-bold mb-0">Campeón Zampabollos</p>
+                    <small class="text-muted">Semana {{ w.semana }}</small>
+                </div>
+
+                <hr class="border-warning">
+
+                <!-- Winner Photo -->
+                <div class="diploma-photo my-3">
+                    {% if w.foto_diploma %}
+                        <img src="{{ url_for('static', filename=w.foto_diploma) }}"
+                             alt="{{ w.nombre }} - Versión Fat"
+                             class="rounded-circle diploma-img">
+                    {% elif w.foto_url %}
+                        <img src="{{ url_for('static', filename=w.foto_url) }}"
+                             alt="{{ w.nombre }}"
+                             class="rounded-circle diploma-img">
+                    {% else %}
+                        <div class="diploma-img-placeholder rounded-circle mx-auto">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Upload photo button -->
+                <form action="{{ url_for('hall_of_fame_photo', semana=w.semana) }}" method="POST" enctype="multipart/form-data" class="mb-2">
+                    <label class="btn btn-sm btn-outline-warning">
+                        <i class="bi bi-camera-fill me-1"></i>
+                        {% if w.foto_diploma %}Cambiar foto fat{% else %}Subir foto fat{% endif %}
+                        <input type="file" name="foto" accept="image/*" class="d-none" onchange="this.form.submit()">
+                    </label>
+                </form>
+
+                <!-- Winner Info -->
+                <h4 class="fw-bold">{{ w.nombre }}</h4>
+                <p class="mb-1">
+                    <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+                        <i class="bi bi-quote"></i> {{ w.apodo }}
+                    </span>
+                </p>
+                <p class="text-muted mt-2">
+                    Variación: <strong>{{ '%+.1f'|format(w.variacion_peso) }} kg</strong>
+                </p>
+
+                <hr class="border-warning">
+                <small class="text-muted fst-italic">
+                    "Por su extraordinaria dedicación a la causa zampabollos"
+                </small>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center text-muted py-5">
+    <i class="bi bi-star display-1"></i>
+    <p class="mt-3">Aún no hay campeones. ¡Completa al menos 2 semanas de pesaje!</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,119 @@
+{
+  "name": "Renombrar y mover PDFs (local)",
+  "nodes": [
+    {
+      "id": "b0ab7a0a-9d7a-4a77-9a40-1c3b3b8b5f3f",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -200,
+        0
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "9e7c3f59-7d1a-4a53-a3d6-6b1f1e5a5b2a",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -200,
+        220
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "5c2b8b41-61e0-45de-a99e-2b5b7d5a77a6",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        40,
+        110
+      ],
+      "parameters": {
+        "options": {},
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7f5c3c90-0e21-4c21-a4ac-f8d9c1a7cb1d",
+              "name": "sourceDir",
+              "type": "string",
+              "value": "C:\\ruta\\a\\tu\\carpeta"
+            },
+            {
+              "id": "0f5e6f36-3c02-4e92-bbb0-5a6c5c7a9d11",
+              "name": "destSubfolder",
+              "type": "string",
+              "value": "procesados"
+            },
+            {
+              "id": "d44a7f87-8f57-4cbe-8d57-4a8a9d4b1b3d",
+              "name": "prefix",
+              "type": "string",
+              "value": "PDF"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "d7f0708e-1a64-4a79-9e87-0cc6bba68822",
+      "name": "Mover y renombrar PDFs",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        340,
+        110
+      ],
+      "parameters": {
+        "command": "=powershell -NoProfile -ExecutionPolicy Bypass -Command \"$source='{{ $json.sourceDir }}'; $dest=Join-Path $source '{{ $json.destSubfolder }}'; if (!(Test-Path -LiteralPath $dest)) { New-Item -ItemType Directory -Path $dest | Out-Null }; Get-ChildItem -LiteralPath $source -File -Filter '*.pdf' | ForEach-Object { $ts=Get-Date -Format 'yyyyMMdd_HHmmssfff'; $base=[IO.Path]::GetFileNameWithoutExtension($_.Name); $baseSafe=($base -replace '[^a-zA-Z0-9._-]', '_'); $newName='{{ $json.prefix }}' + '_' + $ts + '_' + $baseSafe + '.pdf'; Move-Item -LiteralPath $_.FullName -Destination (Join-Path $dest $newName); Write-Output ('Moved: ' + $_.Name + ' -> ' + $newName) }\""
+      }
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Mover y renombrar PDFs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
