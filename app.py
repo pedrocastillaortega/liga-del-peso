@@ -13,6 +13,10 @@ from models import (
 app = Flask(__name__)
 app.secret_key = 'liga-del-peso-secret-key-2026'
 
+# Inicializar la base de datos al arrancar (necesario para gunicorn)
+with app.app_context():
+    init_db()
+
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
