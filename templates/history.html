@@ -42,6 +42,7 @@
                         <th class="text-center">Puntos</th>
                         {% if selected_week > 1 %}
                         <th>Apodo</th>
+                        <th>Castigo</th>
                         {% endif %}
                     </tr>
                 </thead>
@@ -91,6 +92,11 @@
                         <td>
                             {% if r.apodo %}
                                 <span class="badge bg-warning text-dark">{{ r.apodo }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if r.castigo %}
+                                <span class="badge bg-danger text-white">🔥 {{ r.castigo }}</span>
                             {% endif %}
                         </td>
                         {% endif %}
