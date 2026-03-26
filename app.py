@@ -3,7 +3,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from werkzeug.utils import secure_filename
 from models import (
     init_db, get_all_members, add_member, delete_member, get_member,
-    update_member_photo, get_current_week, register_weigh_in,
+    update_member_photo, update_member_genero, get_current_week, register_weigh_in,
     get_weigh_ins_for_week, calculate_weekly_scores, get_weekly_results,
     get_general_classification, get_week_winner, get_all_winners,
     get_all_weeks, update_diploma_photo,
@@ -66,7 +66,8 @@ def members_add():
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             foto_url = f"uploads/{filename}"
 
-    add_member(nombre, foto_url)
+    genero = request.form.get('genero', 'M')
+    add_member(nombre, foto_url, genero)
     flash(f'¡{nombre} se ha unido a La Liga del Peso!', 'success')
     return redirect(url_for('members'))
 
@@ -77,6 +78,19 @@ def members_delete(member_id):
     if member:
         delete_member(member_id)
         flash(f'{member["nombre"]} ha sido eliminado de la liga.', 'warning')
+    return redirect(url_for('members'))
+
+
+@app.route('/members/genero/<int:member_id>', methods=['POST'])
+def members_genero(member_id):
+    member = get_member(member_id)
+    if not member:
+        flash('Miembro no encontrado.', 'danger')
+        return redirect(url_for('members'))
+    genero = request.form.get('genero', 'M')
+    update_member_genero(member_id, genero)
+    etiqueta = 'Chica' if genero == 'F' else 'Chico'
+    flash(f'{member["nombre"]} actualizado como {etiqueta}.', 'success')
     return redirect(url_for('members'))
 
 

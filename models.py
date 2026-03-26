@@ -4,7 +4,7 @@ import random
 
 DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'liga_del_peso.db')
 
-APODOS = [
+APODOS_M = [
     "El Gran Zampabollos",
     "Devorador de Neveras",
     "Rey del Sofá",
@@ -30,6 +30,52 @@ APODOS = [
     "Sultán del Kebab",
     "Doctor Michelines",
     "General Barrigón",
+]
+
+APODOS_F = [
+    "La Gran Zampabollos",
+    "Devoradora de Neveras",
+    "Reina del Sofá",
+    "Barriga de Titanio",
+    "La Aspiradora de Cocinas",
+    "Destructora de Buffets",
+    "Su Majestad Morcillona",
+    "La Tragaldabas",
+    "Condesa de las Croquetas",
+    "Marquesa del Chorizo",
+    "Baronesa de la Panceta",
+    "Duquesa del Cochinillo",
+    "La Rompe-Básculas",
+    "Señora de los Churros",
+    "Princesa del Jamón",
+    "Emperatriz del Buffet Libre",
+    "Capitana Mantecas",
+    "Lady Tripona",
+    "La Insaciable",
+    "Vizcondesa de la Tortilla",
+    "Archiduquesa del Cocido",
+    "Paladina de la Fabada",
+    "Sultana del Kebab",
+    "Doctora Michelines",
+    "General Barrigona",
+]
+
+CASTIGOS = [
+    "Llevar un tupper saludable para todos (y no probarlo)",
+    "Hacer 20 sentadillas delante del grupo al pesarse",
+    "Ser el 'motivador oficial' del grupo (mensajes diarios tipo coach)",
+    "No usar ascensor en toda la semana (y documentarlo)",
+    "Grabar un vídeo dando consejos fitness absurdos",
+    "Llevar una cinta métrica colgada todo el día como 'inspector corporal'",
+    "Pagar el café saludable (o infusión) de los demás",
+    "Hacer una mini clase de estiramientos en la oficina",
+    "Comer ensalada delante de todos mientras los demás comen lo que quieran",
+    "Hacer un reel tipo influencer fitness ridículo",
+    "Hacer una clase improvisada de zumba en la oficina",
+    "Pagar una ronda de infusiones/café",
+    "Mandar un meme diario sobre dieta/ejercicio",
+    "Dar un paseo de 10 min con algún compañero",
+    "Cambiar su estado a 'en operación bikini' durante la semana",
 ]
 
 PUNTOS = {1: 8, 2: 6, 3: 4, 4: 2}
@@ -95,6 +141,20 @@ def init_db():
     except sqlite3.OperationalError:
         pass  # La columna ya existe
 
+    # Migración: añadir castigo a weekly_scores
+    try:
+        conn.execute("ALTER TABLE weekly_scores ADD COLUMN castigo TEXT DEFAULT ''")
+        conn.commit()
+    except sqlite3.OperationalError:
+        pass  # La columna ya existe
+
+    # Migración: añadir genero a members
+    try:
+        conn.execute("ALTER TABLE members ADD COLUMN genero TEXT DEFAULT 'M'")
+        conn.commit()
+    except sqlite3.OperationalError:
+        pass  # La columna ya existe
+
     conn.close()
 
 
@@ -107,9 +167,9 @@ def get_all_members():
     return members
 
 
-def add_member(nombre, foto_url=''):
+def add_member(nombre, foto_url='', genero='M'):
     conn = get_db()
-    conn.execute("INSERT INTO members (nombre, foto_url) VALUES (?, ?)", (nombre, foto_url))
+    conn.execute("INSERT INTO members (nombre, foto_url, genero) VALUES (?, ?, ?)", (nombre, foto_url, genero))
     conn.commit()
     conn.close()
 
@@ -126,6 +186,13 @@ def get_member(member_id):
     member = conn.execute("SELECT * FROM members WHERE id = ?", (member_id,)).fetchone()
     conn.close()
     return member
+
+
+def update_member_genero(member_id, genero):
+    conn = get_db()
+    conn.execute("UPDATE members SET genero = ? WHERE id = ?", (genero, member_id))
+    conn.commit()
+    conn.close()
 
 
 def update_member_photo(member_id, foto_url):
@@ -228,18 +295,24 @@ def calculate_weekly_scores(semana):
     # Ordenar: quien más engorda (o menos adelgaza) primero → más puntos
     variations.sort(key=lambda x: x['variacion'], reverse=True)
 
-    # Asignar puntos y apodo al ganador
-    apodo_semana = random.choice(APODOS)
+    # Asignar puntos, apodo y castigo al perdedor (puesto 1 = más engordó)
+    perdedor_id = variations[0]['member_id']
+    perdedor = conn.execute("SELECT genero FROM members WHERE id = ?", (perdedor_id,)).fetchone()
+    genero_perdedor = perdedor['genero'] if perdedor else 'M'
+    lista_apodos = APODOS_F if genero_perdedor == 'F' else APODOS_M
+    apodo_semana   = random.choice(lista_apodos)
+    castigo_semana = random.choice(CASTIGOS)
 
     for i, v in enumerate(variations):
         puesto = i + 1
         puntos = PUNTOS.get(puesto, 0)
-        apodo = apodo_semana if puesto == 1 else ''
+        apodo   = apodo_semana   if puesto == 1 else ''
+        castigo = castigo_semana if puesto == 1 else ''
 
         conn.execute(
-            "INSERT INTO weekly_scores (member_id, semana, variacion_peso, puntos, puesto, apodo) "
-            "VALUES (?, ?, ?, ?, ?, ?)",
-            (v['member_id'], semana, v['variacion'], puntos, puesto, apodo)
+            "INSERT INTO weekly_scores (member_id, semana, variacion_peso, puntos, puesto, apodo, castigo) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (v['member_id'], semana, v['variacion'], puntos, puesto, apodo, castigo)
         )
 
     conn.commit()
