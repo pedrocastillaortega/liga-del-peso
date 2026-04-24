@@ -10,20 +10,20 @@
 <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg-dark: #1a1a2e;
-  --bg-card: #16213e;
-  --bg-card2: #0f3460;
-  --accent: #e94560;
-  --accent2: #f5a623;
-  --gold: #ffd700;
-  --silver: #c0c0c0;
-  --bronze: #cd7f32;
-  --green: #2ecc71;
-  --red: #e74c3c;
-  --text: #eaeaea;
-  --text-muted: #8899aa;
+  --bg-dark: #f5f0e8;
+  --bg-card: #fffdf7;
+  --bg-card2: #e8e0cc;
+  --accent: #6b7c3f;
+  --accent2: #c17f3a;
+  --gold: #b8860b;
+  --silver: #8a8a72;
+  --bronze: #8b5e3c;
+  --green: #4a7c3f;
+  --red: #b94040;
+  --text: #2c2c1e;
+  --text-muted: #6b6b50;
   --radius: 14px;
-  --shadow: 0 8px 32px rgba(0,0,0,0.3);
+  --shadow: 0 8px 32px rgba(0,0,0,0.1);
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 body {
@@ -38,9 +38,9 @@ body::before {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   background: 
-    radial-gradient(ellipse at 20% 50%, rgba(233,69,96,0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, rgba(15,52,96,0.3) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 80%, rgba(245,166,35,0.06) 0%, transparent 50%);
+    radial-gradient(ellipse at 20% 50%, rgba(107,124,63,0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(193,127,58,0.07) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(107,124,63,0.05) 0%, transparent 50%);
   pointer-events: none;
   z-index: 0;
 }
@@ -48,7 +48,7 @@ body::before {
 /* NAV */
 .nav {
   position: sticky; top: 0; z-index: 100;
-  background: rgba(26,26,46,0.95);
+  background: rgba(245,240,232,0.95);
   backdrop-filter: blur(12px);
   border-bottom: 2px solid var(--accent);
   padding: 0;
@@ -113,12 +113,12 @@ h2 {
   padding: 20px;
   margin-bottom: 16px;
   box-shadow: var(--shadow);
-  border: 1px solid rgba(255,255,255,0.05);
+  border: 1px solid rgba(0,0,0,0.07);
 }
 
 /* WINNER BANNER */
 .winner-banner {
-  background: linear-gradient(135deg, #1a1a2e 0%, #2d1b4e 50%, #1a1a2e 100%);
+  background: linear-gradient(135deg, #f5f0e8 0%, #ede8d5 50%, #f5f0e8 100%);
   border: 2px solid var(--gold);
   border-radius: var(--radius);
   padding: 24px;
@@ -144,7 +144,7 @@ h2 {
 .winner-banner .name {
   font-size: 1.5em;
   font-weight: 800;
-  color: #fff;
+  color: var(--text);
 }
 .winner-banner .apodo {
   color: var(--accent);
@@ -185,10 +185,10 @@ th {
 }
 td {
   padding: 10px 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
   vertical-align: middle;
 }
-tr:hover td { background: rgba(233,69,96,0.05); }
+tr:hover td { background: rgba(107,124,63,0.06); }
 .pos-1 { color: var(--gold); font-weight: 800; }
 .pos-2 { color: var(--silver); font-weight: 700; }
 .pos-3 { color: var(--bronze); font-weight: 700; }
@@ -244,8 +244,8 @@ tr:hover td { background: rgba(233,69,96,0.05); }
 input[type="text"], input[type="number"], select {
   width: 100%;
   padding: 10px 14px;
-  background: var(--bg-dark);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: #f5f0e8;
+  border: 1px solid rgba(0,0,0,0.15);
   border-radius: 8px;
   color: var(--text);
   font-family: 'Nunito', sans-serif;
@@ -288,7 +288,7 @@ input:focus, select:focus {
   align-items: center;
   gap: 12px;
   padding: 10px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
 }
 .peso-row .name { flex: 1; font-weight: 700; }
 .peso-row input {
@@ -305,7 +305,7 @@ input:focus, select:focus {
   background: var(--bg-card);
   border-radius: var(--radius);
   margin-bottom: 10px;
-  border: 1px solid rgba(255,255,255,0.05);
+  border: 1px solid rgba(0,0,0,0.07);
 }
 .member-card .info { flex: 1; }
 .member-card .name { font-weight: 700; font-size: 1.05em; }
@@ -322,7 +322,7 @@ input:focus, select:focus {
 
 /* HALL OF FAME */
 .hall-card {
-  background: linear-gradient(135deg, var(--bg-card) 0%, #2d1b4e 100%);
+  background: linear-gradient(135deg, #fffdf7 0%, #f0ead8 100%);
   border: 1px solid var(--gold);
   border-radius: var(--radius);
   padding: 20px;
@@ -392,7 +392,7 @@ input:focus, select:focus {
 .week-btn {
   padding: 6px 16px;
   background: var(--bg-card2);
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid rgba(0,0,0,0.1);
   border-radius: 20px;
   color: var(--text);
   font-weight: 700;
@@ -483,7 +483,7 @@ input:focus, select:focus {
   width: 90%;
   max-height: 80vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
 }
 .modal h3 {
   font-family: 'Lilita One', cursive;
@@ -644,7 +644,7 @@ input:focus, select:focus {
 // ============================================
 const CONFIG = {
   // URL del Web App de Google Apps Script
-  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzJpfB6dXs9fL50g1-30UiWdogwoAAfZ2pKs_yuWQ0pkXvYh1kgeyZ3vy-pMbp6bbiDOQ/exec', // ← PEGAR AQUÍ la URL del Apps Script Web App
+  SCRIPT_URL: '', // ← PEGAR AQUÍ la URL del Apps Script Web App
 };
 
 // ============================================
