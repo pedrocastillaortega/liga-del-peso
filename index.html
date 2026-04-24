@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Liga del Peso</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a1a2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-dark: #1a1a2e;
+  --bg-card: #16213e;
+  --bg-card2: #0f3460;
+  --accent: #e94560;
+  --accent2: #f5a623;
+  --gold: #ffd700;
+  --silver: #c0c0c0;
+  --bronze: #cd7f32;
+  --green: #2ecc71;
+  --red: #e74c3c;
+  --text: #eaeaea;
+  --text-muted: #8899aa;
+  --radius: 14px;
+  --shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg-dark);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: 
+    radial-gradient(ellipse at 20% 50%, rgba(233,69,96,0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(15,52,96,0.3) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(245,166,35,0.06) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* NAV */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(26,26,46,0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 2px solid var(--accent);
+  padding: 0;
+}
+.nav-inner {
+  max-width: 900px; margin: 0 auto;
+  display: flex; align-items: center;
+  padding: 10px 16px; gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.nav-inner::-webkit-scrollbar { display: none; }
+.nav-logo {
+  font-family: 'Lilita One', cursive;
+  font-size: 1.3em;
+  color: var(--accent);
+  white-space: nowrap;
+  margin-right: 8px;
+  cursor: pointer;
+}
+.nav-logo span { color: var(--accent2); }
+.nav-btn {
+  background: none; border: none; color: var(--text-muted);
+  font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 0.85em;
+  padding: 8px 14px; border-radius: 8px; cursor: pointer;
+  white-space: nowrap; transition: all 0.2s;
+}
+.nav-btn:hover, .nav-btn.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* MAIN */
+.container {
+  max-width: 900px; margin: 0 auto;
+  padding: 20px 16px 100px;
+  position: relative; z-index: 1;
+}
+h1 {
+  font-family: 'Lilita One', cursive;
+  font-size: 2em;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+h1 span { color: var(--accent2); }
+.subtitle {
+  color: var(--text-muted);
+  margin-bottom: 24px;
+  font-size: 0.95em;
+}
+h2 {
+  font-family: 'Lilita One', cursive;
+  font-size: 1.4em;
+  color: var(--accent2);
+  margin: 28px 0 14px;
+}
+
+/* CARDS */
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+/* WINNER BANNER */
+.winner-banner {
+  background: linear-gradient(135deg, #1a1a2e 0%, #2d1b4e 50%, #1a1a2e 100%);
+  border: 2px solid var(--gold);
+  border-radius: var(--radius);
+  padding: 24px;
+  text-align: center;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.winner-banner::before {
+  content: '👑';
+  position: absolute;
+  top: -10px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 3em;
+  opacity: 0.15;
+}
+.winner-banner .title {
+  font-family: 'Lilita One', cursive;
+  color: var(--gold);
+  font-size: 1.3em;
+  margin-bottom: 6px;
+}
+.winner-banner .name {
+  font-size: 1.5em;
+  font-weight: 800;
+  color: #fff;
+}
+.winner-banner .apodo {
+  color: var(--accent);
+  font-style: italic;
+  font-size: 1.1em;
+  margin: 4px 0;
+}
+.winner-banner .castigo {
+  color: var(--accent2);
+  font-size: 0.9em;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: rgba(245,166,35,0.1);
+  border-radius: 8px;
+  display: inline-block;
+}
+
+/* TABLE */
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95em;
+}
+th {
+  background: var(--bg-card2);
+  color: var(--accent2);
+  font-weight: 700;
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: sticky; top: 0;
+}
+td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  vertical-align: middle;
+}
+tr:hover td { background: rgba(233,69,96,0.05); }
+.pos-1 { color: var(--gold); font-weight: 800; }
+.pos-2 { color: var(--silver); font-weight: 700; }
+.pos-3 { color: var(--bronze); font-weight: 700; }
+.medal { font-size: 1.2em; margin-right: 4px; }
+.peso-up { color: var(--red); }
+.peso-down { color: var(--green); }
+.puntos-badge {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-weight: 800;
+  font-size: 0.9em;
+}
+.avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--accent);
+  vertical-align: middle;
+  margin-right: 8px;
+  background: var(--bg-card2);
+}
+.avatar-placeholder {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--bg-card2);
+  border: 2px solid var(--accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.85em;
+  color: var(--accent);
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+/* FORMS */
+.form-group {
+  margin-bottom: 14px;
+}
+.form-group label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: var(--text-muted);
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+input[type="text"], input[type="number"], select {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-dark);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'Nunito', sans-serif;
+  font-size: 1em;
+  transition: border 0.2s;
+}
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.btn {
+  display: inline-block;
+  padding: 10px 22px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Nunita', sans-serif;
+  font-weight: 700;
+  font-size: 0.95em;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn:hover { background: #c73e54; transform: translateY(-1px); }
+.btn-secondary {
+  background: var(--bg-card2);
+  color: var(--text);
+}
+.btn-secondary:hover { background: #1a4a7a; }
+.btn-danger { background: var(--red); }
+.btn-danger:hover { background: #c0392b; }
+.btn-gold { background: var(--accent2); color: #1a1a2e; }
+.btn-gold:hover { background: #e09520; }
+.btn-sm { padding: 6px 14px; font-size: 0.85em; }
+.btn-block { display: block; width: 100%; text-align: center; }
+
+/* PESO INPUT ROW */
+.peso-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.peso-row .name { flex: 1; font-weight: 700; }
+.peso-row input {
+  width: 100px;
+  text-align: center;
+}
+
+/* MEMBER CARD */
+.member-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.member-card .info { flex: 1; }
+.member-card .name { font-weight: 700; font-size: 1.05em; }
+.member-card .genero-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75em;
+  font-weight: 700;
+}
+.genero-M { background: rgba(52,152,219,0.2); color: #3498db; }
+.genero-F { background: rgba(233,69,96,0.2); color: #e94560; }
+.member-actions { display: flex; gap: 6px; }
+
+/* HALL OF FAME */
+.hall-card {
+  background: linear-gradient(135deg, var(--bg-card) 0%, #2d1b4e 100%);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 14px;
+  text-align: center;
+}
+.hall-card .semana-label {
+  color: var(--gold);
+  font-family: 'Lilita One', cursive;
+  font-size: 1.1em;
+}
+.hall-card .winner-name {
+  font-size: 1.3em;
+  font-weight: 800;
+  margin: 6px 0;
+}
+.hall-card .apodo {
+  color: var(--accent);
+  font-style: italic;
+}
+.hall-card .variacion {
+  margin-top: 6px;
+  font-size: 0.9em;
+}
+.hall-card .diploma-img {
+  max-width: 200px;
+  border-radius: 10px;
+  margin-top: 10px;
+  border: 2px solid var(--gold);
+}
+
+/* GALLERY */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+.gallery-item {
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  aspect-ratio: 1;
+  cursor: pointer;
+}
+.gallery-item img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+.gallery-item:hover img { transform: scale(1.05); }
+.gallery-item .caption {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 8px;
+  background: linear-gradient(transparent, rgba(0,0,0,0.8));
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+/* WEEK SELECTOR */
+.week-selector {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.week-btn {
+  padding: 6px 16px;
+  background: var(--bg-card2);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  color: var(--text);
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.9em;
+  transition: all 0.2s;
+}
+.week-btn:hover, .week-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 20px; left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--green);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-weight: 700;
+  z-index: 1000;
+  transition: transform 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.error { background: var(--red); }
+.toast.warning { background: var(--accent2); color: #1a1a2e; }
+
+/* LOADING */
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-muted);
+}
+.spinner {
+  display: inline-block;
+  width: 36px; height: 36px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* SECTION HIDDEN */
+.section { display: none; }
+.section.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* EMPTY STATE */
+.empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+}
+.empty .icon { font-size: 3em; margin-bottom: 10px; }
+
+/* RESPONSIVE */
+@media (max-width: 600px) {
+  h1 { font-size: 1.5em; }
+  .nav-logo { font-size: 1.1em; }
+  .nav-btn { font-size: 0.78em; padding: 6px 10px; }
+  .peso-row { flex-wrap: wrap; }
+  .peso-row input { width: 80px; }
+  .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+}
+
+/* MODAL */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 24px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.modal h3 {
+  font-family: 'Lilita One', cursive;
+  color: var(--accent2);
+  margin-bottom: 16px;
+  font-size: 1.2em;
+}
+.modal-close {
+  float: right;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.5em;
+  cursor: pointer;
+  line-height: 1;
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-logo" onclick="showSection('home')">🏋️ Liga <span>del Peso</span></div>
+    <button class="nav-btn active" onclick="showSection('home')" id="nav-home">Inicio</button>
+    <button class="nav-btn" onclick="showSection('members')" id="nav-members">Miembros</button>
+    <button class="nav-btn" onclick="showSection('weighin')" id="nav-weighin">Pesaje</button>
+    <button class="nav-btn" onclick="showSection('history')" id="nav-history">Historial</button>
+    <button class="nav-btn" onclick="showSection('hall')" id="nav-hall">Hall of Fame</button>
+    <button class="nav-btn" onclick="showSection('gallery')" id="nav-gallery">Recuerdos</button>
+  </div>
+</nav>
+
+<div class="container">
+  <!-- HOME -->
+  <div class="section active" id="sec-home">
+    <h1>🏋️ La Liga <span>del Peso</span></h1>
+    <p class="subtitle">¿Quién será el próximo Campeón Zampabollos?</p>
+    
+    <div id="winner-area"></div>
+
+    <h2>🏆 Clasificación General</h2>
+    <div id="classification-area">
+      <div class="loading"><div class="spinner"></div><p>Cargando clasificación...</p></div>
+    </div>
+  </div>
+
+  <!-- MEMBERS -->
+  <div class="section" id="sec-members">
+    <h1>👥 Miembros</h1>
+    <p class="subtitle">Gestiona los participantes de la liga</p>
+
+    <div class="card">
+      <h3 style="color:var(--accent2);margin-bottom:12px;font-family:'Lilita One',cursive;">Añadir miembro</h3>
+      <div class="form-group">
+        <label>Nombre</label>
+        <input type="text" id="new-member-name" placeholder="Nombre del participante">
+      </div>
+      <div class="form-group">
+        <label>Género</label>
+        <select id="new-member-genero">
+          <option value="M">Chico</option>
+          <option value="F">Chica</option>
+        </select>
+      </div>
+      <button class="btn" onclick="addMember()">➕ Añadir a la Liga</button>
+    </div>
+
+    <h2>Participantes</h2>
+    <div id="members-list">
+      <div class="loading"><div class="spinner"></div><p>Cargando miembros...</p></div>
+    </div>
+  </div>
+
+  <!-- WEIGH-IN -->
+  <div class="section" id="sec-weighin">
+    <h1>⚖️ Pesaje</h1>
+    <p class="subtitle">Registra los pesos de la semana</p>
+
+    <div class="card">
+      <div class="form-group">
+        <label>Semana</label>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <input type="number" id="weighin-week" min="1" style="width:100px;">
+          <span id="weighin-week-hint" style="color:var(--text-muted);font-size:0.9em;"></span>
+        </div>
+      </div>
+    </div>
+
+    <div id="weighin-list">
+      <div class="loading"><div class="spinner"></div><p>Cargando...</p></div>
+    </div>
+
+    <div style="margin-top:16px;">
+      <button class="btn btn-gold btn-block" onclick="submitWeighIn()">💾 Guardar Pesaje</button>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="section" id="sec-history">
+    <h1>📊 Historial</h1>
+    <p class="subtitle">Resultados por semana</p>
+
+    <div id="history-weeks" class="week-selector"></div>
+    <div id="history-results"></div>
+  </div>
+
+  <!-- HALL OF FAME -->
+  <div class="section" id="sec-hall">
+    <h1>🏅 Hall of Fame</h1>
+    <p class="subtitle">Galería de Campeones Zampabollos</p>
+    <div id="hall-list">
+      <div class="loading"><div class="spinner"></div><p>Cargando...</p></div>
+    </div>
+  </div>
+
+  <!-- GALLERY -->
+  <div class="section" id="sec-gallery">
+    <h1>📸 Recuerdos</h1>
+    <p class="subtitle">Momentos memorables de la liga</p>
+
+    <div class="card">
+      <h3 style="color:var(--accent2);margin-bottom:12px;font-family:'Lilita One',cursive;">Añadir recuerdo</h3>
+      <div class="form-group">
+        <label>Título</label>
+        <input type="text" id="photo-title" placeholder="Título del recuerdo">
+      </div>
+      <div class="form-group">
+        <label>Imagen (URL o pegar enlace)</label>
+        <input type="text" id="photo-url" placeholder="https://...">
+      </div>
+      <button class="btn" onclick="addPhoto()">📸 Añadir Recuerdo</button>
+    </div>
+
+    <div id="gallery-area" class="gallery-grid" style="margin-top:20px;"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3 id="confirm-title">¿Estás seguro?</h3>
+    <p id="confirm-text"></p>
+    <div style="margin-top:16px;display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-danger" id="confirm-btn" onclick="">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================
+// CONFIGURACIÓN - CAMBIAR ESTAS URLs
+// ============================================
+const CONFIG = {
+  // URL del Web App de Google Apps Script
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbx7M_9WxBUZRra9zY7Fw9bcsMAGuesSu2IN-KuWYPqXVJ2GooqDtJRrRdjJ30VRgjoLkg/exec', // ← PEGAR AQUÍ la URL del Apps Script Web App
+};
+
+// ============================================
+// STATE
+// ============================================
+let state = {
+  members: [],
+  weighIns: {},       // { semana: [ {member_id, peso_kg} ] }
+  scores: {},         // { semana: [ {member_id, variacion, puntos, puesto, apodo, castigo} ] }
+  gallery: [],
+  currentWeek: 0,
+  loaded: false
+};
+
+// ============================================
+// API CALLS (JSONP)
+// ============================================
+let jsonpCounter = 0;
+
+function jsonp(action, params = {}) {
+  return new Promise((resolve, reject) => {
+    const cbName = `__cb_${jsonpCounter++}_${Date.now()}`;
+    const url = new URL(CONFIG.SCRIPT_URL);
+    url.searchParams.set('callback', cbName);
+    url.searchParams.set('action', action);
+    for (const [k, v] of Object.entries(params)) {
+      url.searchParams.set(k, typeof v === 'object' ? JSON.stringify(v) : v);
+    }
+
+    window[cbName] = (data) => {
+      delete window[cbName];
+      document.head.removeChild(script);
+      if (data.error) reject(new Error(data.error));
+      else resolve(data);
+    };
+
+    const script = document.createElement('script');
+    script.src = url.toString();
+    script.onerror = () => {
+      delete window[cbName];
+      document.head.removeChild(script);
+      reject(new Error('Error de conexión'));
+    };
+    document.head.appendChild(script);
+  });
+}
+
+// ============================================
+// DATA LOADING
+// ============================================
+async function loadAll() {
+  try {
+    const data = await jsonp('getAll');
+    state.members = data.members || [];
+    state.weighIns = data.weighIns || {};
+    state.scores = data.scores || {};
+    state.gallery = data.gallery || [];
+    state.currentWeek = data.currentWeek || 0;
+    state.loaded = true;
+    renderCurrentSection();
+  } catch (e) {
+    console.error('Error cargando datos:', e);
+    showToast('Error de conexión con la base de datos', 'error');
+  }
+}
+
+// ============================================
+// NAVIGATION
+// ============================================
+let currentSection = 'home';
+
+function showSection(name) {
+  currentSection = name;
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById(`sec-${name}`).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const navBtn = document.getElementById(`nav-${name}`);
+  if (navBtn) navBtn.classList.add('active');
+  renderCurrentSection();
+}
+
+function renderCurrentSection() {
+  if (!state.loaded) return;
+  switch (currentSection) {
+    case 'home': renderHome(); break;
+    case 'members': renderMembers(); break;
+    case 'weighin': renderWeighIn(); break;
+    case 'history': renderHistory(); break;
+    case 'hall': renderHall(); break;
+    case 'gallery': renderGallery(); break;
+  }
+}
+
+// ============================================
+// RENDER: HOME
+// ============================================
+function renderHome() {
+  // Winner banner
+  const winnerArea = document.getElementById('winner-area');
+  if (state.currentWeek >= 2) {
+    const weekScores = state.scores[state.currentWeek];
+    if (weekScores && weekScores.length > 0) {
+      const winner = weekScores.find(s => s.puesto === 1);
+      if (winner) {
+        const member = state.members.find(m => m.id === winner.member_id);
+        winnerArea.innerHTML = `
+          <div class="winner-banner">
+            <div class="title">👑 Campeón Zampabollos - Semana ${state.currentWeek}</div>
+            <div class="name">${member ? member.nombre : 'Desconocido'}</div>
+            <div class="apodo">"${winner.apodo}"</div>
+            <div style="color:var(--text-muted);font-size:0.9em;margin-top:4px;">
+              ${winner.variacion > 0 ? '📈' : '📉'} ${winner.variacion > 0 ? '+' : ''}${winner.variacion.toFixed(2)} kg
+            </div>
+            ${winner.castigo ? `<div class="castigo">🎯 Castigo: ${winner.castigo}</div>` : ''}
+          </div>
+        `;
+      } else {
+        winnerArea.innerHTML = '';
+      }
+    } else {
+      winnerArea.innerHTML = '';
+    }
+  } else {
+    winnerArea.innerHTML = '';
+  }
+
+  // Classification
+  const classArea = document.getElementById('classification-area');
+  const classification = getGeneralClassification();
+  
+  if (classification.length === 0) {
+    classArea.innerHTML = '<div class="empty"><div class="icon">🏋️</div><p>No hay participantes todavía.<br>Añade miembros para empezar.</p></div>';
+    return;
+  }
+
+  let html = `<div class="table-wrap"><table>
+    <tr><th>#</th><th>Participante</th><th>Puntos</th><th>Semanas</th></tr>`;
+  
+  classification.forEach((c, i) => {
+    const pos = i + 1;
+    const posClass = pos <= 3 ? `pos-${pos}` : '';
+    const medal = pos === 1 ? '🥇' : pos === 2 ? '🥈' : pos === 3 ? '🥉' : '';
+    html += `<tr>
+      <td class="${posClass}">${medal ? `<span class="medal">${medal}</span>` : pos}</td>
+      <td>${avatarHTML(c)} ${c.nombre}</td>
+      <td><span class="puntos-badge">${c.totalPuntos}</span></td>
+      <td style="color:var(--text-muted)">${c.semanas}</td>
+    </tr>`;
+  });
+  
+  html += '</table></div>';
+  classArea.innerHTML = html;
+}
+
+function getGeneralClassification() {
+  const totals = {};
+  state.members.forEach(m => {
+    totals[m.id] = { id: m.id, nombre: m.nombre, genero: m.genero, totalPuntos: 0, semanas: 0 };
+  });
+  
+  for (const [semana, scores] of Object.entries(state.scores)) {
+    scores.forEach(s => {
+      if (totals[s.member_id]) {
+        totals[s.member_id].totalPuntos += s.puntos;
+        totals[s.member_id].semanas++;
+      }
+    });
+  }
+  
+  return Object.values(totals).sort((a, b) => b.totalPuntos - a.totalPuntos || a.nombre.localeCompare(b.nombre));
+}
+
+// ============================================
+// RENDER: MEMBERS
+// ============================================
+function renderMembers() {
+  const list = document.getElementById('members-list');
+  if (state.members.length === 0) {
+    list.innerHTML = '<div class="empty"><div class="icon">👥</div><p>No hay miembros todavía.</p></div>';
+    return;
+  }
+
+  list.innerHTML = state.members.map(m => `
+    <div class="member-card">
+      ${avatarHTML(m, 48)}
+      <div class="info">
+        <div class="name">${m.nombre}</div>
+        <span class="genero-badge genero-${m.genero}">${m.genero === 'F' ? '👧 Chica' : '👦 Chico'}</span>
+      </div>
+      <div class="member-actions">
+        <button class="btn btn-sm btn-secondary" onclick="toggleGenero(${m.id})">🔄</button>
+        <button class="btn btn-sm btn-danger" onclick="confirmDelete(${m.id}, '${m.nombre}')">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function addMember() {
+  const name = document.getElementById('new-member-name').value.trim();
+  const genero = document.getElementById('new-member-genero').value;
+  if (!name) { showToast('El nombre es obligatorio', 'error'); return; }
+
+  try {
+    await jsonp('addMember', { nombre: name, genero: genero });
+    document.getElementById('new-member-name').value = '';
+    showToast(`¡${name} se ha unido a La Liga del Peso!`);
+    await loadAll();
+  } catch (e) {
+    showToast('Error al añadir miembro', 'error');
+  }
+}
+
+async function toggleGenero(id) {
+  const member = state.members.find(m => m.id === id);
+  if (!member) return;
+  const newGenero = member.genero === 'M' ? 'F' : 'M';
+  try {
+    await jsonp('updateGenero', { id: id, genero: newGenero });
+    showToast(`${member.nombre} actualizado como ${newGenero === 'F' ? 'Chica' : 'Chico'}`);
+    await loadAll();
+  } catch (e) {
+    showToast('Error al actualizar', 'error');
+  }
+}
+
+function confirmDelete(id, nombre) {
+  document.getElementById('confirm-title').textContent = '¿Eliminar miembro?';
+  document.getElementById('confirm-text').textContent = `${nombre} será eliminado de la liga junto con todos sus datos.`;
+  document.getElementById('confirm-btn').onclick = () => deleteMember(id, nombre);
+  document.getElementById('confirm-modal').classList.add('show');
+}
+
+async function deleteMember(id, nombre) {
+  closeModal();
+  try {
+    await jsonp('deleteMember', { id: id });
+    showToast(`${nombre} ha sido eliminado de la liga`, 'warning');
+    await loadAll();
+  } catch (e) {
+    showToast('Error al eliminar', 'error');
+  }
+}
+
+// ============================================
+// RENDER: WEIGH-IN
+// ============================================
+function renderWeighIn() {
+  const weekInput = document.getElementById('weighin-week');
+  const hint = document.getElementById('weighin-week-hint');
+  const nextWeek = state.currentWeek + 1;
+  
+  if (!weekInput.value) {
+    weekInput.value = nextWeek;
+  }
+  hint.textContent = `(Semana actual: ${state.currentWeek}, siguiente: ${nextWeek})`;
+
+  const list = document.getElementById('weighin-list');
+  if (state.members.length === 0) {
+    list.innerHTML = '<div class="empty"><div class="icon">⚖️</div><p>Añade miembros primero.</p></div>';
+    return;
+  }
+
+  const semana = parseInt(weekInput.value) || nextWeek;
+  const existing = state.weighIns[semana] || [];
+
+  list.innerHTML = '<div class="card">' + state.members.map(m => {
+    const prev = existing.find(w => w.member_id === m.id);
+    return `<div class="peso-row">
+      ${avatarHTML(m)}
+      <div class="name">${m.nombre}</div>
+      <input type="number" step="0.1" min="20" max="300" 
+             id="peso-${m.id}" 
+             value="${prev ? prev.peso_kg : ''}" 
+             placeholder="kg">
+    </div>`;
+  }).join('') + '</div>';
+}
+
+async function submitWeighIn() {
+  const semana = parseInt(document.getElementById('weighin-week').value);
+  if (!semana || semana < 1) {
+    showToast('Semana inválida', 'error');
+    return;
+  }
+
+  const pesajes = [];
+  state.members.forEach(m => {
+    const input = document.getElementById(`peso-${m.id}`);
+    if (input && input.value) {
+      const peso = parseFloat(input.value.replace(',', '.'));
+      if (peso >= 20 && peso <= 300) {
+        pesajes.push({ member_id: m.id, peso_kg: peso });
+      }
+    }
+  });
+
+  if (pesajes.length === 0) {
+    showToast('No se registró ningún peso válido', 'error');
+    return;
+  }
+
+  try {
+    await jsonp('submitWeighIn', { semana: semana, pesajes: JSON.stringify(pesajes) });
+    showToast(`¡Pesaje de la semana ${semana} registrado! (${pesajes.length} participantes)`);
+    await loadAll();
+    showSection('home');
+  } catch (e) {
+    showToast('Error al guardar pesaje', 'error');
+  }
+}
+
+// ============================================
+// RENDER: HISTORY
+// ============================================
+function renderHistory() {
+  const weeksDiv = document.getElementById('history-weeks');
+  const resultsDiv = document.getElementById('history-results');
+  
+  const weeks = Object.keys(state.scores).map(Number).sort((a, b) => b - a);
+  
+  if (weeks.length === 0) {
+    weeksDiv.innerHTML = '';
+    resultsDiv.innerHTML = '<div class="empty"><div class="icon">📊</div><p>No hay resultados todavía.</p></div>';
+    return;
+  }
+
+  weeksDiv.innerHTML = weeks.map(w => 
+    `<button class="week-btn" onclick="showWeekResults(${w})" id="week-btn-${w}">Semana ${w}</button>`
+  ).join('');
+
+  resultsDiv.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;">Selecciona una semana para ver los resultados.</p>';
+}
+
+function showWeekResults(semana) {
+  document.querySelectorAll('.week-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById(`week-btn-${semana}`);
+  if (btn) btn.classList.add('active');
+
+  const resultsDiv = document.getElementById('history-results');
+  const scores = state.scores[semana];
+  
+  if (!scores || scores.length === 0) {
+    resultsDiv.innerHTML = '<div class="card"><p style="color:var(--text-muted);">Sin datos para esta semana.</p></div>';
+    return;
+  }
+
+  const sorted = [...scores].sort((a, b) => a.puesto - b.puesto);
+  
+  let html = `<div class="card"><h3 style="color:var(--accent2);font-family:'Lilita One',cursive;margin-bottom:12px;">Semana ${semana}</h3>`;
+  html += `<div class="table-wrap"><table>
+    <tr><th>#</th><th>Participante</th><th>Variación</th><th>Puntos</th><th>Apodo/Castigo</th></tr>`;
+
+  sorted.forEach(s => {
+    const member = state.members.find(m => m.id === s.member_id);
+    const posClass = s.puesto <= 3 ? `pos-${s.puesto}` : '';
+    const varClass = s.variacion > 0 ? 'peso-up' : s.variacion < 0 ? 'peso-down' : '';
+    const varIcon = s.variacion > 0 ? '📈' : s.variacion < 0 ? '📉' : '➡️';
+    
+    html += `<tr>
+      <td class="${posClass}">${s.puesto}</td>
+      <td>${member ? member.nombre : '?'}</td>
+      <td class="${varClass}">${varIcon} ${s.variacion > 0 ? '+' : ''}${s.variacion.toFixed(2)} kg</td>
+      <td><span class="puntos-badge">${s.puntos}</span></td>
+      <td>${s.apodo ? `<em style="color:var(--accent)">"${s.apodo}"</em>` : ''}
+          ${s.castigo ? `<br><small style="color:var(--accent2)">🎯 ${s.castigo}</small>` : ''}</td>
+    </tr>`;
+  });
+  
+  html += '</table></div></div>';
+  resultsDiv.innerHTML = html;
+}
+
+// ============================================
+// RENDER: HALL OF FAME
+// ============================================
+function renderHall() {
+  const list = document.getElementById('hall-list');
+  const winners = [];
+
+  for (const [semana, scores] of Object.entries(state.scores)) {
+    if (parseInt(semana) <= 1) continue;
+    const winner = scores.find(s => s.puesto === 1);
+    if (winner) {
+      const member = state.members.find(m => m.id === winner.member_id);
+      winners.push({ semana: parseInt(semana), ...winner, nombre: member ? member.nombre : '?', genero: member ? member.genero : 'M' });
+    }
+  }
+
+  winners.sort((a, b) => b.semana - a.semana);
+
+  if (winners.length === 0) {
+    list.innerHTML = '<div class="empty"><div class="icon">🏅</div><p>El Hall of Fame se llenará cuando se completen al menos 2 semanas.</p></div>';
+    return;
+  }
+
+  list.innerHTML = winners.map(w => `
+    <div class="hall-card">
+      <div class="semana-label">👑 Semana ${w.semana}</div>
+      <div class="winner-name">${w.nombre}</div>
+      <div class="apodo">"${w.apodo}"</div>
+      <div class="variacion ${w.variacion > 0 ? 'peso-up' : 'peso-down'}">
+        ${w.variacion > 0 ? '📈 +' : '📉 '}${w.variacion.toFixed(2)} kg · ${w.puntos} puntos
+      </div>
+      ${w.castigo ? `<div style="color:var(--accent2);font-size:0.9em;margin-top:6px;">🎯 ${w.castigo}</div>` : ''}
+      ${w.foto_diploma ? `<img src="${w.foto_diploma}" class="diploma-img" alt="Diploma">` : ''}
+    </div>
+  `).join('');
+}
+
+// ============================================
+// RENDER: GALLERY
+// ============================================
+function renderGallery() {
+  const area = document.getElementById('gallery-area');
+  if (state.gallery.length === 0) {
+    area.innerHTML = '<div class="empty" style="grid-column:1/-1;"><div class="icon">📸</div><p>No hay recuerdos todavía.</p></div>';
+    return;
+  }
+
+  area.innerHTML = state.gallery.map(p => `
+    <div class="gallery-item">
+      <img src="${p.foto_url}" alt="${p.titulo || 'Recuerdo'}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%2316213e%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%23666%22 font-size=%2214%22>📸</text></svg>'">
+      <div class="caption">${p.titulo || ''}</div>
+    </div>
+  `).join('');
+}
+
+async function addPhoto() {
+  const titulo = document.getElementById('photo-title').value.trim();
+  const url = document.getElementById('photo-url').value.trim();
+  if (!url) { showToast('La URL de la imagen es obligatoria', 'error'); return; }
+
+  try {
+    await jsonp('addPhoto', { titulo: titulo, foto_url: url });
+    document.getElementById('photo-title').value = '';
+    document.getElementById('photo-url').value = '';
+    showToast('¡Recuerdo añadido!');
+    await loadAll();
+  } catch (e) {
+    showToast('Error al añadir recuerdo', 'error');
+  }
+}
+
+// ============================================
+// HELPERS
+// ============================================
+function avatarHTML(member, size = 36) {
+  const initial = member.nombre ? member.nombre.charAt(0).toUpperCase() : '?';
+  return `<span class="avatar-placeholder" style="width:${size}px;height:${size}px;font-size:${size*0.4}px;">${initial}</span>`;
+}
+
+function showToast(msg, type = 'success') {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.className = `toast ${type} show`;
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function closeModal() {
+  document.getElementById('confirm-modal').classList.remove('show');
+}
+
+// Week input change handler
+document.getElementById('weighin-week').addEventListener('change', () => {
+  if (state.loaded) renderWeighIn();
+});
+
+// ============================================
+// INIT
+// ============================================
+if (CONFIG.SCRIPT_URL) {
+  loadAll();
+} else {
+  document.getElementById('classification-area').innerHTML = `
+    <div class="card" style="text-align:center;">
+      <p style="color:var(--accent);font-weight:700;font-size:1.1em;margin-bottom:10px;">⚠️ Configuración necesaria</p>
+      <p style="color:var(--text-muted);">
+        Abre <code>index.html</code> y pega la URL de tu Google Apps Script Web App en <code>CONFIG.SCRIPT_URL</code>.
+      </p>
+    </div>`;
+}
+</script>
+</body>
+</html>
