@@ -78,6 +78,22 @@ body::before {
 .conn-badge.connecting { background: #fff3cd; color: #856404; }
 .conn-badge.ok         { background: #d1e7dd; color: #0f5132; }
 .conn-badge.error      { background: #f8d7da; color: #842029; cursor: pointer; }
+.season-label {
+  white-space: nowrap; font-size: 0.78em; font-weight: 800;
+  padding: 4px 10px; border-radius: 20px;
+  background: var(--accent); color: #fff;
+  font-family: 'Lilita One', cursive; letter-spacing: 0.5px;
+}
+.season-tabs {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
+}
+.season-tab {
+  padding: 6px 14px; border-radius: 20px; border: 2px solid var(--accent);
+  background: none; color: var(--accent); font-weight: 700; font-size: 0.85em;
+  cursor: pointer; transition: all 0.2s; font-family: 'Nunito', sans-serif;
+}
+.season-tab.active { background: var(--accent); color: #fff; }
+.season-tab:hover:not(.active) { background: rgba(107,124,63,0.1); }
 .nav-btn {
   background: none; border: none; color: var(--text-muted);
   font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 0.85em;
@@ -516,12 +532,14 @@ input:focus, select:focus {
 <nav class="nav">
   <div class="nav-inner">
     <div class="nav-logo" onclick="showSection('home')">🏋️ Liga <span>del Peso</span></div>
+    <span id="season-label" class="season-label">⏳</span>
     <button class="nav-btn active" onclick="showSection('home')" id="nav-home">Inicio</button>
     <button class="nav-btn" onclick="showSection('members')" id="nav-members">Miembros</button>
     <button class="nav-btn" onclick="showSection('weighin')" id="nav-weighin">Pesaje</button>
     <button class="nav-btn" onclick="showSection('history')" id="nav-history">Historial</button>
     <button class="nav-btn" onclick="showSection('hall')" id="nav-hall">Hall of Fame</button>
     <button class="nav-btn" onclick="showSection('gallery')" id="nav-gallery">Recuerdos</button>
+    <button class="nav-btn" onclick="showSection('admin')" id="nav-admin" title="Administración">⚙️</button>
     <span id="conn-badge" class="conn-badge connecting" title="Estado de conexión con el servidor">⏳ Conectando...</span>
   </div>
 </nav>
@@ -629,6 +647,15 @@ input:focus, select:focus {
 
     <div id="gallery-area" class="gallery-grid" style="margin-top:20px;"></div>
   </div>
+
+  <!-- ADMIN -->
+  <div class="section" id="sec-admin">
+    <h1>⚙️ Administración</h1>
+    <p class="subtitle">Gestión de temporadas</p>
+    <div id="admin-area">
+      <div class="loading"><div class="spinner"></div><p>Cargando...</p></div>
+    </div>
+  </div>
 </div>
 
 <!-- TOAST -->
@@ -665,8 +692,12 @@ let state = {
   scores: {},         // { semana: [ {member_id, variacion, puntos, puesto, apodo, castigo} ] }
   gallery: [],
   currentWeek: 0,
-  loaded: false
+  loaded: false,
+  currentSeason: '',
+  seasons: []         // temporadas archivadas
 };
+
+let historyState = null; // datos de temporada histórica al navegar el historial
 
 // ============================================
 // API CALLS (JSONP)
@@ -740,8 +771,13 @@ async function loadAll() {
     state.scores = data.scores || {};
     state.gallery = data.gallery || [];
     state.currentWeek = data.currentWeek || 0;
+    state.currentSeason = data.currentSeason || '25/26';
+    state.seasons = data.seasons || [];
     state.loaded = true;
-    setConnBadge('ok', `Datos cargados — ${state.members.length} participantes`);
+    historyState = null; // resetear vista histórica al recargar
+    const seasonEl = document.getElementById('season-label');
+    if (seasonEl) seasonEl.textContent = state.currentSeason;
+    setConnBadge('ok', `Temp. ${state.currentSeason} — ${state.members.length} participantes`);
     renderCurrentSection();
   } catch (e) {
     console.error('Error cargando datos:', e);
@@ -785,6 +821,7 @@ function renderCurrentSection() {
     case 'history': renderHistory(); break;
     case 'hall': renderHall(); break;
     case 'gallery': renderGallery(); break;
+    case 'admin': renderAdmin(); break;
   }
 }
 
@@ -1012,20 +1049,53 @@ async function submitWeighIn() {
 function renderHistory() {
   const weeksDiv = document.getElementById('history-weeks');
   const resultsDiv = document.getElementById('history-results');
-  
-  const weeks = Object.keys(state.scores).map(Number).sort((a, b) => b - a);
-  
+
+  // Selector de temporadas (actual + archivadas)
+  const allSeasons = [state.currentSeason, ...state.seasons].filter(Boolean);
+  const activeSeason = historyState ? historyState.viewingSeason : state.currentSeason;
+
+  const tabsHtml = `<div class="season-tabs">${allSeasons.map(s =>
+    `<button class="season-tab ${s === activeSeason ? 'active' : ''}" onclick="switchHistorySeason('${s}')">
+      ${s === state.currentSeason ? '📅 ' : '🗂️ '}${s}${s === state.currentSeason ? ' (actual)' : ''}
+    </button>`
+  ).join('')}</div>`;
+
+  const data = historyState || state;
+  const weeks = Object.keys(data.scores).map(Number).sort((a, b) => b - a);
+
   if (weeks.length === 0) {
-    weeksDiv.innerHTML = '';
-    resultsDiv.innerHTML = '<div class="empty"><div class="icon">📊</div><p>No hay resultados todavía.</p></div>';
+    weeksDiv.innerHTML = tabsHtml;
+    resultsDiv.innerHTML = '<div class="empty"><div class="icon">📊</div><p>No hay resultados en esta temporada.</p></div>';
     return;
   }
 
-  weeksDiv.innerHTML = weeks.map(w => 
+  weeksDiv.innerHTML = tabsHtml + weeks.map(w =>
     `<button class="week-btn" onclick="showWeekResults(${w})" id="week-btn-${w}">Semana ${w}</button>`
   ).join('');
 
   resultsDiv.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;">Selecciona una semana para ver los resultados.</p>';
+}
+
+async function switchHistorySeason(season) {
+  if (season === state.currentSeason) {
+    historyState = null;
+    renderHistory();
+    return;
+  }
+  const weeksDiv = document.getElementById('history-weeks');
+  weeksDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Cargando temporada ' + season + '...</p></div>';
+  document.getElementById('history-results').innerHTML = '';
+  try {
+    const data = await jsonp('getAll', { temporada: season });
+    historyState = {
+      members: data.members || [],
+      scores: data.scores || {},
+      viewingSeason: season
+    };
+    renderHistory();
+  } catch (e) {
+    showToast('Error cargando temporada ' + season, 'error');
+  }
 }
 
 function showWeekResults(semana) {
@@ -1034,7 +1104,8 @@ function showWeekResults(semana) {
   if (btn) btn.classList.add('active');
 
   const resultsDiv = document.getElementById('history-results');
-  const scores = state.scores[semana];
+  const data = historyState || state;
+  const scores = data.scores[semana];
   
   if (!scores || scores.length === 0) {
     resultsDiv.innerHTML = '<div class="card"><p style="color:var(--text-muted);">Sin datos para esta semana.</p></div>';
@@ -1048,7 +1119,7 @@ function showWeekResults(semana) {
     <tr><th>#</th><th>Participante</th><th>Variación</th><th>Puntos</th><th>Apodo/Castigo</th></tr>`;
 
   sorted.forEach(s => {
-    const member = state.members.find(m => m.id === s.member_id);
+    const member = data.members.find(m => m.id === s.member_id);
     const posClass = s.puesto <= 3 ? `pos-${s.puesto}` : '';
     const varClass = s.variacion > 0 ? 'peso-up' : s.variacion < 0 ? 'peso-down' : '';
     const varIcon = s.variacion > 0 ? '📈' : s.variacion < 0 ? '📉' : '➡️';
@@ -1135,6 +1206,73 @@ async function addPhoto() {
     await loadAll();
   } catch (e) {
     showToast('Error al añadir recuerdo', 'error');
+  }
+}
+
+// ============================================
+// RENDER: ADMIN
+// ============================================
+function renderAdmin() {
+  const area = document.getElementById('admin-area');
+  const pastSeasons = state.seasons || [];
+  const nextSeason = suggestNextSeason(state.currentSeason);
+
+  area.innerHTML = `
+    <div class="card">
+      <h3 style="font-family:'Lilita One',cursive;color:var(--accent);margin-bottom:16px;">📅 Temporada actual: ${state.currentSeason}</h3>
+      ${pastSeasons.length > 0 ? `
+        <p style="color:var(--text-muted);margin-bottom:8px;">Temporadas archivadas:</p>
+        <div class="season-tabs" style="margin-bottom:16px;">
+          ${pastSeasons.map(s => `<span class="season-tab">${s}</span>`).join('')}
+        </div>` : ''}
+    </div>
+
+    <div class="card" style="border:2px solid var(--accent2);">
+      <h3 style="font-family:'Lilita One',cursive;color:var(--accent2);margin-bottom:8px;">🆕 Iniciar nueva temporada</h3>
+      <p style="color:var(--text-muted);font-size:0.9em;margin-bottom:16px;">
+        Los datos de <strong>${state.currentSeason}</strong> se archivarán. Los participantes se mantienen pero los pesajes y puntuaciones empezarán desde cero.
+      </p>
+      <div class="form-group">
+        <label>Nombre de la nueva temporada</label>
+        <input type="text" id="new-season-input" value="${nextSeason}" placeholder="ej: 26/27" maxlength="5" style="max-width:140px;">
+      </div>
+      <button class="btn btn-gold" onclick="confirmNewSeason()">🚀 Iniciar temporada</button>
+    </div>`;
+}
+
+function suggestNextSeason(current) {
+  if (!current || !/^\d{2}\/\d{2}$/.test(current)) return '';
+  const [start, end] = current.split('/').map(Number);
+  return `${end}/${end + 1}`;
+}
+
+function confirmNewSeason() {
+  const input = document.getElementById('new-season-input');
+  const newSeason = (input ? input.value.trim() : '');
+  if (!/^\d{2}\/\d{2}$/.test(newSeason)) {
+    showToast('Formato inválido. Usa XX/XX (ej: 26/27)', 'error');
+    return;
+  }
+  const modal = document.getElementById('confirm-modal');
+  document.getElementById('confirm-title').textContent = '¿Iniciar nueva temporada?';
+  document.getElementById('confirm-text').textContent =
+    `Se archivará la temporada ${state.currentSeason} y comenzará la ${newSeason}. Los participantes se copian, pero pesajes y puntuaciones empiezan desde cero. Esta acción no se puede deshacer.`;
+  document.getElementById('confirm-btn').textContent = `🚀 Iniciar ${newSeason}`;
+  document.getElementById('confirm-btn').onclick = () => executeNewSeason(newSeason);
+  modal.classList.add('show');
+}
+
+async function executeNewSeason(newSeason) {
+  closeModal();
+  showToast('Iniciando nueva temporada...', 'warning');
+  try {
+    const result = await jsonp('startNewSeason', { nuevaTemporada: newSeason }, 30000);
+    if (result.error) { showToast(result.error, 'error'); return; }
+    showToast(`✅ Temporada ${newSeason} iniciada. ${result.membersCopied} participantes copiados.`);
+    await loadAll();
+    showSection('home');
+  } catch (e) {
+    showToast('Error al iniciar temporada: ' + e.message, 'error');
   }
 }
 
