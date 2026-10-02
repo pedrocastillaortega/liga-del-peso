@@ -11,6 +11,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
 :root {
   --bg-dark: #F7F5F0;
@@ -653,6 +655,11 @@ input:focus, select:focus {
   <div class="section" id="sec-evolucion">
     <h1>📈 Evolución</h1>
     <p class="subtitle">Peso semanal y variación acumulada de cada participante</p>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+      <button id="btnPdfEvo" onclick="exportarPDFEvo()" style="background:#e74c3c;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:0.95em;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;">
+        <span>📄</span> Exportar Informe PDF
+      </button>
+    </div>
     <div class="card" id="evo-chart-card">
       <h2 style="margin-top:0;margin-bottom:16px;">Gráfica de evolución</h2>
       <div class="evo-chart-wrap">
@@ -1224,6 +1231,9 @@ function renderHall() {
 // ============================================
 let evoChart = null;
 
+let _evoWeeks = [];
+let _evoMemberData = [];
+
 function renderEvolucion() {
   const weeks = Object.keys(state.weighIns).map(Number).sort((a, b) => a - b);
 
@@ -1338,6 +1348,91 @@ function renderEvolucion() {
 
   html += '</tbody></table>';
   tableWrap.innerHTML = html;
+
+  _evoWeeks = weeks;
+  _evoMemberData = memberData;
+}
+
+function exportarPDFEvo() {
+  const btn = document.getElementById('btnPdfEvo');
+  if (_evoWeeks.length === 0) { alert('No hay datos de evolución todavía.'); return; }
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Generando...';
+
+  setTimeout(() => {
+    try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+
+      // Cabecera
+      doc.setFillColor(33, 37, 41);
+      doc.rect(0, 0, pageW, 20, 'F');
+      doc.setFontSize(15);
+      doc.setTextColor(255, 255, 255);
+      doc.text('La Liga del Peso — Informe de Evolución', pageW / 2, 10, { align: 'center' });
+      doc.setFontSize(8);
+      doc.setTextColor(180, 180, 180);
+      const fecha = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
+      doc.text('Generado el ' + fecha, pageW / 2, 16, { align: 'center' });
+
+      // Gráfica
+      const canvas = document.getElementById('evo-chart');
+      if (canvas) {
+        const imgData = canvas.toDataURL('image/png');
+        const chartW = 200;
+        const chartH = 78;
+        doc.addImage(imgData, 'PNG', (pageW - chartW) / 2, 23, chartW, chartH);
+      }
+
+      // Tabla
+      const head = [['Participante', ..._evoWeeks.map(w => w === _evoWeeks[0] ? 'S' + w + ' (ini.)' : 'S' + w), 'Variación acum.']];
+      const body = _evoMemberData.map(d => {
+        const row = [d.member.nombre];
+        _evoWeeks.forEach(w => {
+          const v = d.weights[w];
+          row.push(v !== undefined ? v.toFixed(1) + ' kg' : '—');
+        });
+        const vari = d.variation;
+        row.push(vari === null ? '—' : (vari > 0 ? '+' : '') + vari.toFixed(1) + ' kg');
+        return row;
+      });
+
+      const varColIdx = head[0].length - 1;
+
+      doc.autoTable({
+        head, body,
+        startY: 105,
+        theme: 'grid',
+        headStyles: { fillColor: [33, 37, 41], textColor: 255, fontSize: 8, halign: 'center', fontStyle: 'bold' },
+        bodyStyles: { fontSize: 8, halign: 'center' },
+        columnStyles: { 0: { halign: 'left', fontStyle: 'bold', cellWidth: 35 } },
+        alternateRowStyles: { fillColor: [248, 249, 250] },
+        didParseCell: (data) => {
+          if (data.section === 'body' && data.column.index === varColIdx) {
+            const txt = (data.cell.text[0] || '').trim();
+            if (txt.startsWith('-')) { data.cell.styles.textColor = [39, 174, 96]; data.cell.styles.fontStyle = 'bold'; }
+            else if (txt.startsWith('+') && txt !== '+0.0 kg') { data.cell.styles.textColor = [231, 76, 60]; data.cell.styles.fontStyle = 'bold'; }
+          }
+        },
+        didDrawPage: () => {
+          doc.setFontSize(7);
+          doc.setTextColor(150, 150, 150);
+          doc.text('Variación acumulada = último peso − peso inicial (S1)  ·  Verde = ha bajado  ·  Rojo = ha subido',
+            pageW / 2, pageH - 4, { align: 'center' });
+        }
+      });
+
+      doc.save('liga-del-peso-evolucion.pdf');
+    } catch (e) {
+      console.error('Error generando PDF:', e);
+      alert('Error al generar el PDF.');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<span>📄</span> Exportar Informe PDF';
+    }
+  }, 50);
 }
 
 // ============================================
