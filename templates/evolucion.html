@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}Evolución - La Liga del Peso{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-graph-up-arrow me-2"></i>Evolución de Pesos</h2>
+
+{% if weeks %}
+
+<!-- Gráfica -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-dark text-white">
+        <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Gráfica de Evolución</h5>
+    </div>
+    <div class="card-body">
+        <div style="position: relative; height: 380px;">
+            <canvas id="evolutionChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla -->
+<div class="card shadow-sm">
+    <div class="card-header bg-dark text-white">
+        <h5 class="mb-0"><i class="bi bi-table me-2"></i>Tabla de Pesos Semanales</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th class="ps-3">Participante</th>
+                        {% for week in weeks %}
+                        <th class="text-center">
+                            {% if week == 1 %}
+                                <span title="Peso inicial">S1 <i class="bi bi-flag-fill text-warning" style="font-size:.7rem;"></i></span>
+                            {% else %}
+                                S{{ week }}
+                            {% endif %}
+                        </th>
+                        {% endfor %}
+                        <th class="text-center">Variación acumulada</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in members %}
+                    <tr>
+                        <td class="ps-3">
+                            <div class="d-flex align-items-center">
+                                {% if m.foto_url %}
+                                    <img src="{{ url_for('static', filename=m.foto_url) }}" alt="{{ m.nombre }}"
+                                         class="rounded-circle me-2 member-thumb">
+                                {% else %}
+                                    <div class="member-thumb-placeholder rounded-circle me-2">
+                                        <i class="bi bi-person-fill"></i>
+                                    </div>
+                                {% endif %}
+                                <strong>{{ m.nombre }}</strong>
+                            </div>
+                        </td>
+                        {% for week in weeks %}
+                        <td class="text-center">
+                            {% if m.weights.get(week) is not none %}
+                                {{ '%.1f'|format(m.weights[week]) }}
+                                <small class="text-muted">kg</small>
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                        <td class="text-center fw-bold fs-5">
+                            {% if m.variation is not none %}
+                                {% if m.variation < 0 %}
+                                    <span class="text-success">{{ '%+.1f'|format(m.variation) }} kg</span>
+                                {% elif m.variation > 0 %}
+                                    <span class="text-danger">{{ '%+.1f'|format(m.variation) }} kg</span>
+                                {% else %}
+                                    <span class="text-muted">0.0 kg</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer text-muted small">
+        <i class="bi bi-info-circle me-1"></i>
+        Variación acumulada = peso último registro − peso inicial (S1).
+        <span class="text-success fw-semibold">Verde = ha bajado</span> ·
+        <span class="text-danger fw-semibold">Rojo = ha subido</span>
+    </div>
+</div>
+
+{% else %}
+<div class="text-center text-muted py-5">
+    <i class="bi bi-graph-up display-1"></i>
+    <p class="mt-3">No hay datos todavía. ¡Registra el primer pesaje!</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if weeks %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+    const COLORS = [
+        '#3498db', '#e74c3c', '#2ecc71', '#f39c12',
+        '#9b59b6', '#1abc9c', '#e67e22', '#fd79a8'
+    ];
+
+    const weeks = {{ weeks | tojson }};
+    const labels = weeks.map(w => 'Semana ' + w);
+
+    const datasets = [
+        {% for m in members %}
+        {
+            label: {{ m.nombre | tojson }},
+            data: {{ m.weights_list | tojson }},
+            borderColor: COLORS[{{ loop.index0 }} % COLORS.length],
+            backgroundColor: COLORS[{{ loop.index0 }} % COLORS.length] + '18',
+            tension: 0.35,
+            pointRadius: 5,
+            pointHoverRadius: 8,
+            borderWidth: 2.5,
+            fill: false,
+            spanGaps: false,
+        },
+        {% endfor %}
+    ];
+
+    new Chart(document.getElementById('evolutionChart').getContext('2d'), {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { position: 'top' },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => {
+                            const v = ctx.parsed.y;
+                            return v !== null ? ctx.dataset.label + ': ' + v.toFixed(1) + ' kg' : ctx.dataset.label + ': —';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    title: { display: true, text: 'Peso (kg)' },
+                    ticks: { callback: v => v + ' kg' }
+                },
+                x: {
+                    title: { display: true, text: 'Semana' }
+                }
+            }
+        }
+    });
+}());
+</script>
+{% endif %}
+{% endblock %}

@@ -414,3 +414,45 @@ def get_all_weeks():
     ).fetchall()
     conn.close()
     return [r['semana'] for r in rows]
+
+
+def get_evolution_data():
+    conn = get_db()
+
+    weeks = [r['semana'] for r in conn.execute(
+        "SELECT DISTINCT semana FROM weigh_ins ORDER BY semana"
+    ).fetchall()]
+
+    members_raw = conn.execute("SELECT * FROM members ORDER BY nombre").fetchall()
+
+    result_members = []
+    for m in members_raw:
+        weights = {}
+        for row in conn.execute(
+            "SELECT semana, peso_kg FROM weigh_ins WHERE member_id = ? ORDER BY semana",
+            (m['id'],)
+        ).fetchall():
+            weights[row['semana']] = row['peso_kg']
+
+        initial = weights.get(weeks[0]) if weeks else None
+        latest = None
+        for w in reversed(weeks):
+            if w in weights:
+                latest = weights[w]
+                break
+
+        variation = round(latest - initial, 2) if initial is not None and latest is not None else None
+
+        result_members.append({
+            'id': m['id'],
+            'nombre': m['nombre'],
+            'foto_url': m['foto_url'],
+            'weights': weights,
+            'weights_list': [weights.get(w) for w in weeks],
+            'initial_weight': initial,
+            'latest_weight': latest,
+            'variation': variation,
+        })
+
+    conn.close()
+    return {'weeks': weeks, 'members': result_members}

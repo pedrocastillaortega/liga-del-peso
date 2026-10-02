@@ -7,7 +7,7 @@ from models import (
     get_weigh_ins_for_week, calculate_weekly_scores, get_weekly_results,
     get_general_classification, get_week_winner, get_all_winners,
     get_all_weeks, update_diploma_photo,
-    get_all_photos, add_photo, delete_photo
+    get_all_photos, add_photo, delete_photo, get_evolution_data
 )
 
 app = Flask(__name__)
@@ -245,6 +245,14 @@ def recuerdos_delete(photo_id):
     delete_photo(photo_id)
     flash('Recuerdo eliminado.', 'warning')
     return redirect(url_for('recuerdos'))
+
+
+@app.route('/evolucion')
+def evolucion():
+    data = get_evolution_data()
+    return render_template('evolucion.html',
+                           weeks=data['weeks'],
+                           members=data['members'])
 
 
 @app.route('/offline')
