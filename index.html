@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 :root {
   --bg-dark: #F7F5F0;
@@ -493,6 +494,10 @@ input:focus, select:focus {
 }
 .empty .icon { font-size: 3em; margin-bottom: 10px; }
 
+/* EVOLUTION */
+.evo-chart-wrap { position: relative; height: 320px; }
+.evo-table th, .evo-table td { white-space: nowrap; }
+
 /* RESPONSIVE */
 @media (max-width: 600px) {
   h1 { font-size: 1.5em; }
@@ -554,6 +559,7 @@ input:focus, select:focus {
     <button class="nav-btn" onclick="showSection('weighin')" id="nav-weighin">Pesaje</button>
     <button class="nav-btn" onclick="showSection('history')" id="nav-history">Historial</button>
     <button class="nav-btn" onclick="showSection('hall')" id="nav-hall">Hall of Fame</button>
+    <button class="nav-btn" onclick="showSection('evolucion')" id="nav-evolucion">📈 Evolución</button>
     <button class="nav-btn" onclick="showSection('gallery')" id="nav-gallery">Recuerdos</button>
     <button class="nav-btn" onclick="showSection('admin')" id="nav-admin" title="Administración">⚙️</button>
     <span id="conn-badge" class="conn-badge connecting" title="Estado de conexión con el servidor">⏳ Conectando...</span>
@@ -640,6 +646,27 @@ input:focus, select:focus {
     <p class="subtitle">Galería de Campeones Zampabollos</p>
     <div id="hall-list">
       <div class="loading"><div class="spinner"></div><p>Cargando...</p></div>
+    </div>
+  </div>
+
+  <!-- EVOLUCIÓN -->
+  <div class="section" id="sec-evolucion">
+    <h1>📈 Evolución</h1>
+    <p class="subtitle">Peso semanal y variación acumulada de cada participante</p>
+    <div class="card" id="evo-chart-card">
+      <h2 style="margin-top:0;margin-bottom:16px;">Gráfica de evolución</h2>
+      <div class="evo-chart-wrap">
+        <canvas id="evo-chart"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <h2 style="margin-top:0;margin-bottom:16px;">Tabla de pesos semanales</h2>
+      <div class="table-wrap" id="evo-table-wrap"></div>
+      <p style="color:var(--text-muted);font-size:0.8em;margin-top:14px;">
+        💡 Variación acumulada = último peso − peso inicial (S1). &nbsp;
+        <span style="color:var(--green);font-weight:700;">Verde = ha bajado</span> &nbsp;·&nbsp;
+        <span style="color:var(--red);font-weight:700;">Rojo = ha subido</span>
+      </p>
     </div>
   </div>
 
@@ -836,6 +863,7 @@ function renderCurrentSection() {
     case 'weighin': renderWeighIn(); break;
     case 'history': renderHistory(); break;
     case 'hall': renderHall(); break;
+    case 'evolucion': renderEvolucion(); break;
     case 'gallery': renderGallery(); break;
     case 'admin': renderAdmin(); break;
   }
@@ -1189,6 +1217,127 @@ function renderHall() {
       ${w.foto_diploma ? `<img src="${w.foto_diploma}" class="diploma-img" alt="Diploma">` : ''}
     </div>
   `).join('');
+}
+
+// ============================================
+// RENDER: EVOLUCIÓN
+// ============================================
+let evoChart = null;
+
+function renderEvolucion() {
+  const weeks = Object.keys(state.weighIns).map(Number).sort((a, b) => a - b);
+
+  const chartCard = document.getElementById('evo-chart-card');
+  const tableWrap = document.getElementById('evo-table-wrap');
+
+  if (weeks.length === 0) {
+    chartCard.innerHTML = '<div class="empty"><div class="icon">📈</div><p>No hay datos todavía. ¡Registra el primer pesaje!</p></div>';
+    tableWrap.innerHTML = '';
+    return;
+  }
+
+  const COLORS = ['#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c', '#e67e22', '#fd79a8'];
+
+  const memberData = state.members.map((m, idx) => {
+    const weights = {};
+    weeks.forEach(w => {
+      const wi = state.weighIns[w];
+      if (wi) {
+        const entry = wi.find(e => e.member_id === m.id);
+        if (entry) weights[w] = entry.peso_kg;
+      }
+    });
+
+    const initial = weights[weeks[0]];
+    let latest = null;
+    for (let i = weeks.length - 1; i >= 0; i--) {
+      if (weights[weeks[i]] !== undefined) { latest = weights[weeks[i]]; break; }
+    }
+    const variation = (initial !== undefined && latest !== null) ? +(latest - initial).toFixed(2) : null;
+
+    return {
+      member: m,
+      weights,
+      weightsList: weeks.map(w => weights[w] !== undefined ? weights[w] : null),
+      initial, latest, variation,
+      color: COLORS[idx % COLORS.length]
+    };
+  });
+
+  // Gráfica
+  if (evoChart) { evoChart.destroy(); evoChart = null; }
+
+  // Restaurar canvas por si fue reemplazado
+  if (!document.getElementById('evo-chart')) {
+    chartCard.innerHTML = `<h2 style="margin-top:0;margin-bottom:16px;">Gráfica de evolución</h2>
+      <div class="evo-chart-wrap"><canvas id="evo-chart"></canvas></div>`;
+  }
+
+  evoChart = new Chart(document.getElementById('evo-chart').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: weeks.map(w => 'Semana ' + w),
+      datasets: memberData.map(d => ({
+        label: d.member.nombre,
+        data: d.weightsList,
+        borderColor: d.color,
+        backgroundColor: d.color + '18',
+        tension: 0.35,
+        pointRadius: 5,
+        pointHoverRadius: 8,
+        borderWidth: 2.5,
+        fill: false,
+        spanGaps: false,
+      }))
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const v = ctx.parsed.y;
+              return v !== null ? ctx.dataset.label + ': ' + v.toFixed(1) + ' kg' : ctx.dataset.label + ': —';
+            }
+          }
+        }
+      },
+      scales: {
+        y: { title: { display: true, text: 'Peso (kg)' }, ticks: { callback: v => v + ' kg' } },
+        x: { title: { display: true, text: 'Semana' } }
+      }
+    }
+  });
+
+  // Tabla
+  let html = `<table class="evo-table"><thead><tr>
+    <th>Participante</th>
+    ${weeks.map(w => `<th style="text-align:center;">${w === weeks[0] ? 'S' + w + ' 🏴' : 'S' + w}</th>`).join('')}
+    <th style="text-align:center;">Variación acumulada</th>
+  </tr></thead><tbody>`;
+
+  memberData.forEach(d => {
+    const varStyle = d.variation === null ? '' : d.variation < 0 ? 'color:var(--green)' : d.variation > 0 ? 'color:var(--red)' : 'color:var(--text-muted)';
+    const varText = d.variation === null ? '—'
+      : (d.variation > 0 ? '+' : '') + d.variation.toFixed(1) + ' kg';
+
+    html += `<tr>
+      <td>${avatarHTML(d.member)} <strong>${d.member.nombre}</strong></td>
+      ${weeks.map(w => {
+        const p = d.weights[w];
+        return `<td style="text-align:center;">${p !== undefined
+          ? p.toFixed(1) + ' <small style="color:var(--text-muted)">kg</small>'
+          : '<span style="color:var(--text-muted)">—</span>'}</td>`;
+      }).join('')}
+      <td style="text-align:center;font-weight:800;font-size:1.1em;${varStyle}">${varText}</td>
+    </tr>`;
+  });
+
+  html += '</tbody></table>';
+  tableWrap.innerHTML = html;
 }
 
 // ============================================
