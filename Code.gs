@@ -324,17 +324,9 @@ function actionAddPhoto(params) {
   const titulo = (params.titulo || '').trim();
   let foto_url = (params.foto_url || '').trim();
 
+  // Imagen enviada como base64 → guardar como data URL directamente en el sheet
   if (!foto_url && params.imageData) {
-    const base64 = params.imageData;
-    const filename = (params.filename || ('recuerdo_' + Date.now() + '.jpg'));
-    const folders = DriveApp.getFoldersByName('Liga del Peso - Galeria');
-    const folder = folders.hasNext()
-      ? folders.next()
-      : DriveApp.getRootFolder().createFolder('Liga del Peso - Galeria');
-    const blob = Utilities.newBlob(Utilities.base64Decode(base64), 'image/jpeg', filename);
-    const file = folder.createFile(blob);
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    foto_url = 'https://drive.google.com/thumbnail?id=' + file.getId() + '&sz=w800';
+    foto_url = 'data:image/jpeg;base64,' + params.imageData;
   }
 
   if (!foto_url) return { error: 'No se recibió imagen' };
