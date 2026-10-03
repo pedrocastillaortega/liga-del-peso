@@ -1486,21 +1486,16 @@ async function addPhoto() {
   btn.textContent = '⏳ Subiendo...';
 
   try {
-    const dataUrl = await compressImage(file, 1200, 0.78);
+    // 400px / 60% para que quepa en parámetro URL (JSONP GET, único método anónimo fiable en Apps Script)
+    const dataUrl = await compressImage(file, 400, 0.60);
+    const base64 = dataUrl.split(',')[1];
 
-    const resp = await fetch(CONFIG.SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({
-        action: 'uploadPhoto',
-        imageData: dataUrl.split(',')[1],
-        filename: file.name.replace(/\.[^.]+$/, '') + '.jpg',
-        titulo: titulo
-      })
-    });
+    const result = await jsonp('addPhoto', {
+      imageData: base64,
+      filename: file.name.replace(/\.[^.]+$/, '') + '.jpg',
+      titulo: titulo
+    }, 30000);
 
-    if (!resp.ok) throw new Error('Error del servidor (' + resp.status + ')');
-    const result = await resp.json();
     if (result.error) throw new Error(result.error);
 
     document.getElementById('photo-title').value = '';

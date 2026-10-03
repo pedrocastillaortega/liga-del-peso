@@ -321,9 +321,23 @@ function actionSubmitWeighIn(params) {
 }
 
 function actionAddPhoto(params) {
-  const foto_url = (params.foto_url || '').trim();
   const titulo = (params.titulo || '').trim();
-  if (!foto_url) return { error: 'URL de la foto es obligatoria' };
+  let foto_url = (params.foto_url || '').trim();
+
+  if (!foto_url && params.imageData) {
+    const base64 = params.imageData;
+    const filename = (params.filename || ('recuerdo_' + Date.now() + '.jpg'));
+    const folders = DriveApp.getFoldersByName('Liga del Peso - Galeria');
+    const folder = folders.hasNext()
+      ? folders.next()
+      : DriveApp.getRootFolder().createFolder('Liga del Peso - Galeria');
+    const blob = Utilities.newBlob(Utilities.base64Decode(base64), 'image/jpeg', filename);
+    const file = folder.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    foto_url = 'https://drive.google.com/thumbnail?id=' + file.getId() + '&sz=w800';
+  }
+
+  if (!foto_url) return { error: 'No se recibió imagen' };
 
   const sheet = getSheet('Galeria');
   const id = getNextId(sheet);
