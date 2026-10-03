@@ -20,11 +20,19 @@ with app.app_context():
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB max
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
 
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@app.errorhandler(413)
+def too_large(e):
+    flash('La foto es demasiado grande (máximo 16 MB). Comprime la imagen e inténtalo de nuevo.', 'danger')
+    from flask import request as req
+    referrer = req.referrer or url_for('recuerdos')
+    return redirect(referrer)
 
 
 # --- RUTAS ---

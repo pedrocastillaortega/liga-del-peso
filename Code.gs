@@ -460,6 +460,52 @@ function calculateWeeklyScores(semana) {
 }
 
 // ============================================
+// FILE UPLOAD (called via POST no-cors from browser)
+// ============================================
+function doPost(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+    if (data.action !== 'uploadPhoto') {
+      return ContentService.createTextOutput(JSON.stringify({ error: 'Unknown action' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const base64 = data.imageData || '';
+    const filename = data.filename || ('recuerdo_' + Date.now() + '.jpg');
+    const titulo = (data.titulo || '').trim();
+
+    if (!base64) {
+      return ContentService.createTextOutput(JSON.stringify({ error: 'Sin datos de imagen' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // Guardar en Google Drive (carpeta "Liga del Peso - Galeria")
+    const folders = DriveApp.getFoldersByName('Liga del Peso - Galeria');
+    const folder = folders.hasNext()
+      ? folders.next()
+      : DriveApp.getRootFolder().createFolder('Liga del Peso - Galeria');
+
+    const blob = Utilities.newBlob(Utilities.base64Decode(base64), 'image/jpeg', filename);
+    const file = folder.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+    const foto_url = 'https://drive.google.com/thumbnail?id=' + file.getId() + '&sz=w1200';
+
+    const sheet = getSheet('Galeria');
+    const id = getNextId(sheet);
+    const fecha = Utilities.formatDate(new Date(), 'Europe/Madrid', 'yyyy-MM-dd');
+    sheet.appendRow([id, foto_url, titulo, fecha]);
+
+    return ContentService.createTextOutput(JSON.stringify({ success: true, id: id }))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ error: err.message }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// ============================================
 // DELETE HELPERS
 // ============================================
 function deleteRowsById(sheet, id) {
